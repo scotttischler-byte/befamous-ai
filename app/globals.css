@@ -25,10 +25,41 @@ body {
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
+/* Hook Engine — animated aurora (deep purple / blue / pink) */
+@keyframes hook-engine-aurora {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.hook-engine-bg-animated {
+  background: linear-gradient(
+    125deg,
+    #6d28d9 0%,
+    #2563eb 38%,
+    #ec4899 68%,
+    #6d28d9 100%
+  );
+  background-size: 220% 220%;
+  animation: hook-engine-aurora 28s ease-in-out infinite;
+  opacity: 0.22;
+}
+
+/* Subtle grain */
+.hook-engine-grain {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  opacity: 0.045;
+  mix-blend-mode: overlay;
+}
+
 @keyframes hook-card-in {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(14px);
   }
   to {
     opacity: 1;
@@ -37,5 +68,47 @@ body {
 }
 
 .hook-output-card {
-  animation: hook-card-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: hook-card-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes engine-shimmer {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+.engine-status-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.12) 45%,
+    transparent 90%
+  );
+  animation: engine-shimmer 2.2s ease-in-out infinite;
+}
+
+@keyframes cta-pulse-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 14px 44px -10px rgba(236, 72, 153, 0.4),
+      0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+      0 0 32px -8px rgba(109, 40, 217, 0.35);
+  }
+  50% {
+    box-shadow:
+      0 18px 52px -8px rgba(139, 92, 246, 0.5),
+      0 0 0 1px rgba(255, 255, 255, 0.12) inset,
+      0 0 48px -6px rgba(37, 99, 235, 0.4);
+  }
+}
+
+.cta-generate-idle {
+  animation: cta-pulse-glow 3.2s ease-in-out infinite;
 }
