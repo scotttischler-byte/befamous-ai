@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { recordMetricsAndScore } from "@/lib/score-single-post";
+import { recordPerformance } from "@/lib/record-performance";
 import { logApi } from "@/lib/log";
 import { isSupabaseConfigured } from "@/lib/supabase/admin";
 
@@ -11,9 +11,6 @@ const BodySchema = z.object({
   comments: z.number().int().min(0),
   shares: z.number().int().min(0),
   saves: z.number().int().min(0),
-  followers_gained: z.number().int().min(0),
-  leads_generated: z.number().int().min(0).optional().default(0),
-  posted_at: z.string().optional().nullable(),
 });
 
 export async function POST(req: Request) {
@@ -22,28 +19,18 @@ export async function POST(req: Request) {
   }
   try {
     const input = BodySchema.parse(await req.json());
-    logApi("score-post", { post_id: input.post_id });
-
-    const result = await recordMetricsAndScore({
-      post_id: input.post_id,
+    logApi("performance", { post_id: input.post_id });
+    const { score } = await recordPerformance(input.post_id, {
       views: input.views,
       likes: input.likes,
       comments: input.comments,
       shares: input.shares,
       saves: input.saves,
-      followers_gained: input.followers_gained,
-      leads_generated: input.leads_generated,
-      posted_at: input.posted_at,
     });
-
-    return NextResponse.json({
-      ok: true,
-      scores: result.scores,
-      metric_id: result.metric.id,
-    });
+    return NextResponse.json({ ok: true, score });
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Scoring failed";
-    logApi("score-post:error", { message });
-    return NextResponse.json({ error: message }, { status: 500 });
+    const message = e instanceof Error ? e.message : "Failed";
+    logApi("performance:error", { message });
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 }

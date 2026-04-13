@@ -4,13 +4,13 @@ import { useMemo, useState, useTransition } from "react";
 import type { BrandRow } from "@/lib/types";
 import type { DashboardSnapshot } from "@/lib/dashboard-load";
 import {
-  attachAssetToPostAction,
+  generateTenAction,
   markPostedAction,
-  queueAssetAction,
   refreshLearningAction,
   runDailyCampaignAction,
   setActiveBrandAction,
   submitMetricsAction,
+  updatePostMediaAction,
 } from "./actions";
 
 type Props = {
@@ -40,14 +40,16 @@ export function DashboardClient({ brands, activeBrandId, snapshot }: Props) {
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [pending, start] = useTransition();
+  const [leadMode, setLeadMode] = useState(false);
 
   const brand = useMemo(
     () => brands.find((b) => b.id === activeBrandId) ?? null,
     [brands, activeBrandId]
   );
 
-  const draftOptions = snapshot?.drafts ?? [];
-  const postedOptions = snapshot?.posted ?? [];
+  const drafts = snapshot?.drafts ?? [];
+  const posted = snapshot?.posted ?? [];
+  const allPosts = [...drafts, ...posted];
 
   async function flash(
     fn: () => Promise<{ ok: boolean; error?: string } | void>
@@ -61,7 +63,7 @@ export function DashboardClient({ brands, activeBrandId, snapshot }: Props) {
           setErr(r.error ?? "Failed");
           return;
         }
-        setMsg("Saved.");
+        setMsg("Done.");
       } catch (e) {
         setErr(e instanceof Error ? e.message : "Error");
       }
@@ -71,8 +73,7 @@ export function DashboardClient({ brands, activeBrandId, snapshot }: Props) {
   if (!brands.length) {
     return (
       <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-sm dark:border-amber-900 dark:bg-amber-950/40">
-        No brands found. Apply <code className="font-mono">supabase/schema.sql</code>{" "}
-        in Supabase (includes seed brands), then refresh.
+        No brands. Apply <code className="font-mono">supabase/schema.sql</code> then refresh.
       </div>
     );
   }
@@ -91,7 +92,6 @@ export function DashboardClient({ brands, activeBrandId, snapshot }: Props) {
         </div>
       )}
 
-      {/* Active brand */}
       <section className="rounded-2xl border border-neutral-200 p-5 dark:border-neutral-800">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
           Active brand
@@ -99,35 +99,41 @@ export function DashboardClient({ brands, activeBrandId, snapshot }: Props) {
         <form
           className="mt-3 flex flex-wrap items-end gap-3"
           action={async (fd) => {
-            const id = String(fd.get("brand_id"));
             setErr(null);
             setMsg(null);
-            await setActiveBrandAction(id);
+            await setActiveBrandAction(String(fd.get("brand_id")));
             setMsg("Brand switched.");
           }}
         >
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="text-neutral-500">Profile</span>
-            <select
-              name="brand_id"
-              defaultValue={activeBrandId ?? brands[0]!.id}
-              className="min-w-[240px] rounded-lg border border-neutral-300 bg-white px-3 py-2 dark:border-neutral-700 dark:bg-neutral-950"
-            >
-              {brands.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
-          </label>
+          <select
+            name="brand_id"
+            defaultValue={activeBrandId ?? brands[0]!.id}
+            className="min-w-[260px] rounded-lg border border-neutral-300 bg-white px-3 py-2 dark:border-neutral-700 dark:bg-neutral-950"
+          >
+            {brands.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name} ({b.brand_tag})
+              </option>
+            ))}
+          </select>
           <button
             type="submit"
             disabled={pending}
-            className="rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-white dark:text-neutral-900"
+            className="rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white dark:bg-white dark:text-neutral-900"
           >
-            Switch brand
+            Switch
           </button>
         </form>
+        <label className="mt-4 flex cursor-pointer items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={leadMode}
+            onChange={(e) => setLeadMode(e.target.checked)}
+          />
+          <span>
+            <strong>Generate for leads</strong> — urgency hooks, pain-first, harder CTAs
+          </span>
+        </label>
         {brand && (
           <dl className="mt-4 grid gap-2 text-sm text-neutral-600 dark:text-neutral-400 md:grid-cols-2">
             <div>
@@ -138,132 +144,124 @@ export function DashboardClient({ brands, activeBrandId, snapshot }: Props) {
               <dt className="text-neutral-400">Audience</dt>
               <dd>{brand.audience}</dd>
             </div>
-            <div>
-              <dt className="text-neutral-400">Goal</dt>
-              <dd>{brand.primary_goal}</dd>
-            </div>
-            <div>
-              <dt className="text-neutral-400">CTA style</dt>
-              <dd>{brand.call_to_action_style}</dd>
-            </div>
           </dl>
         )}
       </section>
 
-      {/* Run daily campaign */}
-      <section className="rounded-2xl border border-neutral-200 p-5 dark:border-neutral-800">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
-          Run daily campaign
+      <section className="rounded-2xl border border-blue-200 bg-blue-50/40 p-5 dark:border-blue-900 dark:bg-blue-950/20">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-blue-800 dark:text-blue-300">
+          Content engine
         </h2>
-        <p className="mt-2 max-w-2xl text-sm text-neutral-600 dark:text-neutral-400">
-          Generates a full batch (hooks, captions, CTAs, video ideas, lead posts,
-          conversion, ad script, lead magnet) and saves{" "}
-          <strong>drafts</strong> to your queue using the active brand profile +
-          learning loop.
-        </p>
-        <button
-          type="button"
-          disabled={pending || !activeBrandId}
-          onClick={() =>
-            flash(async () => {
-              if (!activeBrandId) return { ok: false, error: "No brand" };
-              return runDailyCampaignAction(activeBrandId);
-            })
-          }
-          className="mt-4 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:opacity-50"
-        >
-          {pending ? "Running…" : "Run daily campaign"}
-        </button>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <button
+            type="button"
+            disabled={pending || !activeBrandId}
+            onClick={() =>
+              flash(() =>
+                activeBrandId
+                  ? runDailyCampaignAction(activeBrandId, leadMode)
+                  : Promise.resolve({ ok: false, error: "No brand" })
+              )
+            }
+            className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white disabled:opacity-50"
+          >
+            Run daily content
+          </button>
+          <button
+            type="button"
+            disabled={pending || !activeBrandId}
+            onClick={() =>
+              flash(() =>
+                activeBrandId
+                  ? generateTenAction(activeBrandId, leadMode)
+                  : Promise.resolve({ ok: false, error: "No brand" })
+              )
+            }
+            className="rounded-xl border border-blue-600 px-5 py-3 text-sm font-semibold text-blue-700 disabled:opacity-50 dark:text-blue-400"
+          >
+            Generate 10 posts
+          </button>
+        </div>
       </section>
 
-      {/* Draft queue */}
       <section className="rounded-2xl border border-neutral-200 p-5 dark:border-neutral-800">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
-          Draft queue
-        </h2>
-        {draftOptions.length === 0 ? (
-          <p className="mt-3 text-sm text-neutral-500">No drafts yet.</p>
+        <h2 className="text-sm font-semibold uppercase text-neutral-500">Draft queue</h2>
+        {drafts.length === 0 ? (
+          <p className="mt-3 text-sm text-neutral-500">No drafts.</p>
         ) : (
-          <ul className="mt-4 space-y-4">
-            {draftOptions.slice(0, 25).map((p) => {
-              const blob = [p.hook, p.body, p.caption].filter(Boolean).join("\n");
+          <ul className="mt-4 space-y-5">
+            {drafts.slice(0, 30).map((p) => {
+              const variants = (p.platform_variants ?? {}) as Record<
+                string,
+                { caption?: string; hook?: string }
+              >;
+              const copyText = [p.hook, p.caption, p.cta, p.hashtags].filter(Boolean).join("\n\n");
               return (
                 <li
                   key={p.id}
                   className="rounded-xl border border-neutral-100 bg-neutral-50/80 p-4 dark:border-neutral-800 dark:bg-neutral-900/40"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="text-xs font-medium uppercase text-blue-600">
-                      {p.content_bucket} · {p.item_kind} · {p.platform}
+                    <span className="text-xs font-semibold uppercase text-blue-600">
+                      {p.brand_tag} · {p.platform}
+                      {p.generate_for_leads ? " · LEAD" : ""}
                     </span>
                     <div className="flex gap-2">
-                      <CopyBtn text={blob || p.video_idea || p.cta} />
+                      <CopyBtn text={copyText} />
                       <button
                         type="button"
                         disabled={pending}
-                        onClick={() =>
-                          flash(() => markPostedAction(p.id))
-                        }
+                        onClick={() => flash(() => markPostedAction(p.id))}
                         className="rounded-md bg-neutral-900 px-2 py-1 text-xs text-white dark:bg-white dark:text-neutral-900"
                       >
                         Mark posted
                       </button>
                     </div>
                   </div>
-                  {p.hook ? (
-                    <p className="mt-2 text-sm font-medium">{p.hook}</p>
-                  ) : null}
-                  {p.body ? (
-                    <p className="mt-1 whitespace-pre-wrap text-sm text-neutral-700 dark:text-neutral-300">
-                      {p.body}
-                    </p>
-                  ) : null}
-                  {p.caption ? (
-                    <p className="mt-1 whitespace-pre-wrap text-sm text-neutral-600 dark:text-neutral-400">
-                      {p.caption}
-                    </p>
-                  ) : null}
-                  {p.video_idea ? (
-                    <p className="mt-2 text-xs text-neutral-500">
-                      Video: {p.video_idea}
-                    </p>
-                  ) : null}
-                  {p.cta ? (
-                    <p className="mt-1 text-xs text-neutral-500">CTA: {p.cta}</p>
-                  ) : null}
-                  {snapshot?.assets?.length ? (
-                    <form
-                      className="mt-3 flex flex-wrap items-center gap-2 border-t border-neutral-200 pt-3 dark:border-neutral-800"
-                      action={async (fd) => {
-                        const aid = String(fd.get("asset_id"));
-                        await flash(() =>
-                          attachAssetToPostAction(
-                            p.id,
-                            aid === "" ? null : aid
-                          )
-                        );
-                      }}
+                  <p className="mt-2 text-sm font-medium">{p.hook}</p>
+                  <p className="mt-1 whitespace-pre-wrap text-sm text-neutral-700 dark:text-neutral-300">
+                    {p.caption}
+                  </p>
+                  <p className="mt-1 text-xs text-neutral-500">{p.cta}</p>
+                  <p className="mt-1 text-xs text-neutral-400">{p.hashtags}</p>
+                  {Object.keys(variants).length > 0 && (
+                    <details className="mt-2 text-xs text-neutral-500">
+                      <summary className="cursor-pointer">Platform variants</summary>
+                      <pre className="mt-2 overflow-x-auto rounded bg-neutral-100 p-2 dark:bg-neutral-950">
+                        {JSON.stringify(variants, null, 2)}
+                      </pre>
+                    </details>
+                  )}
+                  <form
+                    className="mt-3 flex flex-wrap items-end gap-2 border-t border-neutral-200 pt-3 dark:border-neutral-800"
+                    action={async (fd) => {
+                      await flash(() => updatePostMediaAction(fd));
+                    }}
+                  >
+                    <input type="hidden" name="post_id" value={p.id} />
+                    <label className="flex flex-col text-xs">
+                      image_url
+                      <input
+                        name="image_url"
+                        defaultValue={p.image_url}
+                        className="w-56 rounded border border-neutral-300 px-2 py-1 dark:border-neutral-700 dark:bg-neutral-950"
+                      />
+                    </label>
+                    <label className="flex flex-col text-xs">
+                      video_url
+                      <input
+                        name="video_url"
+                        defaultValue={p.video_url}
+                        className="w-56 rounded border border-neutral-300 px-2 py-1 dark:border-neutral-700 dark:bg-neutral-950"
+                      />
+                    </label>
+                    <button
+                      type="submit"
+                      className="rounded bg-neutral-200 px-2 py-1 text-xs dark:bg-neutral-800"
                     >
-                      <select
-                        name="asset_id"
-                        defaultValue={p.queued_asset_id ?? ""}
-                        className="rounded border border-neutral-300 bg-white px-2 py-1 text-xs dark:border-neutral-700 dark:bg-neutral-950"
-                      >
-                        <option value="">No asset</option>
-                        {snapshot.assets.map((a) => (
-                          <option key={a.id} value={a.id}>
-                            {a.asset_name} ({a.asset_type})
-                          </option>
-                        ))}
-                      </select>
-                      <button
-                        type="submit"
-                        className="rounded bg-neutral-200 px-2 py-1 text-xs dark:bg-neutral-800"
-                      >
-                        Attach
-                      </button>
-                    </form>
-                  ) : null}
+                      Save media
+                    </button>
+                  </form>
                 </li>
               );
             })}
@@ -271,69 +269,54 @@ export function DashboardClient({ brands, activeBrandId, snapshot }: Props) {
         )}
       </section>
 
-      {/* Posted */}
       <section className="rounded-2xl border border-neutral-200 p-5 dark:border-neutral-800">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
-          Posted content
-        </h2>
-        {postedOptions.length === 0 ? (
-          <p className="mt-3 text-sm text-neutral-500">Nothing marked posted yet.</p>
+        <h2 className="text-sm font-semibold uppercase text-neutral-500">Posted</h2>
+        {posted.length === 0 ? (
+          <p className="mt-3 text-sm text-neutral-500">None yet.</p>
         ) : (
           <ul className="mt-3 space-y-2 text-sm">
-            {postedOptions.slice(0, 15).map((p) => (
-              <li key={p.id} className="flex justify-between gap-4 border-b border-neutral-100 py-2 dark:border-neutral-800">
-                <span className="line-clamp-2">{p.hook || p.caption || p.body}</span>
-                <CopyBtn text={p.caption || p.body || p.hook} label="Copy" />
+            {posted.slice(0, 20).map((p) => (
+              <li
+                key={p.id}
+                className="flex justify-between gap-4 border-b border-neutral-100 py-2 dark:border-neutral-800"
+              >
+                <span className="line-clamp-2">{p.hook || p.caption}</span>
+                <CopyBtn text={p.caption || p.hook} />
               </li>
             ))}
           </ul>
         )}
       </section>
 
-      {/* Metrics */}
       <section className="rounded-2xl border border-neutral-200 p-5 dark:border-neutral-800">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
-          Manual metrics + scoring
+        <h2 className="text-sm font-semibold uppercase text-neutral-500">
+          Performance tracking
         </h2>
         <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
-          Log a snapshot after a post is live. Scores normalize within the brand
-          and feed the learning loop.
+          Score = views×0.4 + shares×2 + comments×1.5 + saves×2 (stored on each snapshot).
         </p>
         <form
-          className="mt-4 grid max-w-xl gap-3 text-sm"
+          className="mt-4 grid max-w-lg gap-3 text-sm"
           action={async (fd) => {
             await flash(() => submitMetricsAction(fd));
           }}
         >
-          <label className="flex flex-col gap-1">
-            <span>Post</span>
-            <select
-              name="post_id"
-              required
-              className="rounded-lg border border-neutral-300 px-3 py-2 dark:border-neutral-700 dark:bg-neutral-950"
-            >
-              <option value="">Select…</option>
-              {[...draftOptions, ...postedOptions].map((p) => (
-                <option key={p.id} value={p.id}>
-                  {(p.hook || p.caption || p.id).slice(0, 60)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-            {(
-              [
-                "views",
-                "likes",
-                "comments",
-                "shares",
-                "saves",
-                "followers_gained",
-                "leads_generated",
-              ] as const
-            ).map((f) => (
-              <label key={f} className="flex flex-col gap-1">
-                <span className="text-xs text-neutral-500">{f}</span>
+          <select
+            name="post_id"
+            required
+            className="rounded-lg border border-neutral-300 px-3 py-2 dark:border-neutral-700 dark:bg-neutral-950"
+          >
+            <option value="">Select post…</option>
+            {allPosts.map((p) => (
+              <option key={p.id} value={p.id}>
+                {(p.hook || p.caption || p.id).slice(0, 55)}
+              </option>
+            ))}
+          </select>
+          <div className="grid grid-cols-2 gap-2 md:grid-cols-5">
+            {(["views", "likes", "comments", "shares", "saves"] as const).map((f) => (
+              <label key={f} className="flex flex-col gap-1 text-xs">
+                {f}
                 <input
                   type="number"
                   name={f}
@@ -344,117 +327,20 @@ export function DashboardClient({ brands, activeBrandId, snapshot }: Props) {
               </label>
             ))}
           </div>
-          <label className="flex flex-col gap-1">
-            <span className="text-xs text-neutral-500">Posted at (ISO optional)</span>
-            <input
-              type="text"
-              name="posted_at"
-              placeholder="2026-04-13T12:00:00Z"
-              className="rounded border border-neutral-300 px-2 py-1 dark:border-neutral-700 dark:bg-neutral-950"
-            />
-          </label>
           <button
             type="submit"
             disabled={pending}
             className="w-fit rounded-lg bg-neutral-900 px-4 py-2 text-white dark:bg-white dark:text-neutral-900"
           >
-            Record metrics &amp; score
+            Record performance
           </button>
         </form>
       </section>
 
-      {/* Asset metadata */}
-      <section className="rounded-2xl border border-neutral-200 p-5 dark:border-neutral-800">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
-          Queue asset (URL / metadata)
-        </h2>
-        <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
-          Paste a CDN or drive link today; swap to real uploads when storage is wired.
-        </p>
-        <form
-          className="mt-4 grid max-w-xl gap-3 text-sm"
-          action={async (fd) => {
-            await flash(() => queueAssetAction(fd));
-          }}
-        >
-          <input type="hidden" name="brand_id" value={activeBrandId ?? ""} />
-          <label className="flex flex-col gap-1">
-            <span>Asset URL</span>
-            <input
-              name="asset_url"
-              required
-              placeholder="https://…"
-              className="rounded-lg border border-neutral-300 px-3 py-2 dark:border-neutral-700 dark:bg-neutral-950"
-            />
-          </label>
-          <label className="flex flex-col gap-1">
-            <span>Name</span>
-            <input
-              name="asset_name"
-              required
-              placeholder="e.g. MVA hero clip v2"
-              className="rounded-lg border border-neutral-300 px-3 py-2 dark:border-neutral-700 dark:bg-neutral-950"
-            />
-          </label>
-          <label className="flex flex-col gap-1">
-            <span>Type</span>
-            <select
-              name="asset_type"
-              className="rounded-lg border border-neutral-300 px-3 py-2 dark:border-neutral-700 dark:bg-neutral-950"
-            >
-              <option value="image">image</option>
-              <option value="video">video</option>
-              <option value="other">other</option>
-            </select>
-          </label>
-          <button
-            type="submit"
-            disabled={pending || !activeBrandId}
-            className="w-fit rounded-lg border border-neutral-300 px-4 py-2 dark:border-neutral-600"
-          >
-            Queue asset
-          </button>
-        </form>
-      </section>
-
-      {/* Top posts */}
-      <section className="rounded-2xl border border-neutral-200 p-5 dark:border-neutral-800">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
-          Top performing posts
-        </h2>
-        {!snapshot?.topPosts.length ? (
-          <p className="mt-3 text-sm text-neutral-500">Score posts to see leaders.</p>
-        ) : (
-          <div className="mt-3 overflow-x-auto">
-            <table className="w-full min-w-[520px] text-left text-sm">
-              <thead>
-                <tr className="border-b border-neutral-200 text-neutral-500 dark:border-neutral-800">
-                  <th className="py-2">Hook / caption</th>
-                  <th className="py-2">Viral</th>
-                  <th className="py-2">Bucket</th>
-                </tr>
-              </thead>
-              <tbody>
-                {snapshot.topPosts.map((p) => (
-                  <tr key={p.id} className="border-b border-neutral-100 dark:border-neutral-800/80">
-                    <td className="max-w-xs truncate py-2">
-                      {p.hook || p.caption || p.body}
-                    </td>
-                    <td className="py-2 font-mono">{p.viral_score.toFixed(1)}</td>
-                    <td className="py-2">{p.content_bucket}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
-
-      {/* Winning patterns */}
       <section className="rounded-2xl border border-neutral-200 p-5 dark:border-neutral-800">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
-            Winning patterns
+          <h2 className="text-sm font-semibold uppercase text-neutral-500">
+            Top posts
           </h2>
           <button
             type="button"
@@ -466,36 +352,65 @@ export function DashboardClient({ brands, activeBrandId, snapshot }: Props) {
                   : Promise.resolve({ ok: false, error: "No brand" })
               )
             }
-            className="text-xs font-medium text-blue-600 underline"
+            className="text-xs text-blue-600 underline"
           >
-            Refresh from scores
+            Rebuild winning patterns
           </button>
         </div>
-        {!snapshot?.patterns ? (
-          <p className="mt-3 text-sm text-neutral-500">
-            No learning row yet — add scores, then refresh.
-          </p>
+        {!snapshot?.topPosts.length ? (
+          <p className="mt-3 text-sm text-neutral-500">Log performance to rank posts.</p>
         ) : (
-          <div className="mt-3 space-y-3 text-sm text-neutral-700 dark:text-neutral-300">
-            <ul className="list-disc pl-4">
-              {snapshot.patterns.common_hook_patterns.slice(0, 10).map((x) => (
-                <li key={x}>{x}</li>
+          <table className="mt-3 w-full min-w-[400px] text-left text-sm">
+            <thead>
+              <tr className="border-b border-neutral-200 text-neutral-500 dark:border-neutral-800">
+                <th className="py-2">Hook</th>
+                <th className="py-2">Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              {snapshot.topPosts.map((p) => (
+                <tr key={p.id} className="border-b border-neutral-100 dark:border-neutral-800/80">
+                  <td className="max-w-xs truncate py-2">{p.hook || p.caption}</td>
+                  <td className="py-2 font-mono">{p.score.toFixed(2)}</td>
+                </tr>
               ))}
-            </ul>
-            {snapshot.patterns.summary ? (
-              <p className="text-neutral-500">{snapshot.patterns.summary}</p>
-            ) : null}
-          </div>
+            </tbody>
+          </table>
         )}
       </section>
 
-      {/* Trend */}
       <section className="rounded-2xl border border-neutral-200 p-5 dark:border-neutral-800">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
-          Growth trends (viral score)
+        <h2 className="text-sm font-semibold uppercase text-neutral-500">
+          Winning patterns
+        </h2>
+        {!snapshot?.patterns.length ? (
+          <p className="mt-3 text-sm text-neutral-500">
+            Run performance + rebuild, or wait for cron <code className="font-mono">/api/cron/learn</code>.
+          </p>
+        ) : (
+          <ul className="mt-3 space-y-2 text-sm">
+            {snapshot.patterns.slice(0, 12).map((w) => (
+              <li key={w.id} className="border-b border-neutral-100 pb-2 dark:border-neutral-800">
+                <span className="font-medium">{w.topic}</span>{" "}
+                <span className="text-neutral-500">avg {w.avg_score.toFixed(1)}</span>
+                <p className="text-xs text-neutral-600 dark:text-neutral-400">
+                  Hook: {w.hook_pattern.slice(0, 100)}…
+                </p>
+                <p className="text-xs text-neutral-600 dark:text-neutral-400">
+                  CTA: {w.cta_pattern.slice(0, 80)}…
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="rounded-2xl border border-neutral-200 p-5 dark:border-neutral-800">
+        <h2 className="text-sm font-semibold uppercase text-neutral-500">
+          Growth trend (avg score / day)
         </h2>
         {!snapshot?.trend.length ? (
-          <p className="mt-3 text-sm text-neutral-500">No score history for this brand.</p>
+          <p className="mt-3 text-sm text-neutral-500">No history.</p>
         ) : (
           <ul className="mt-3 font-mono text-sm">
             {snapshot.trend.map((t) => (

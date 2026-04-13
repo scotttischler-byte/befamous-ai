@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { assertCronAuthorized } from "@/lib/cron-auth";
 import { listBrands } from "@/lib/brands-repo";
-import { executeRunDailyCampaign } from "@/lib/run-daily-campaign";
+import { generateDailyAndPersist } from "@/lib/content-engine";
 import { isSupabaseConfigured } from "@/lib/supabase/admin";
 import { logApi } from "@/lib/log";
 
@@ -18,17 +18,19 @@ export async function GET(req: NextRequest) {
     ? brands.filter((b) => filter.includes(b.id))
     : brands;
 
-  const results: { brand_id: string; ok: boolean; error?: string }[] = [];
+  const leadMode = process.env.BGE_CRON_LEAD_MODE === "true";
+
+  const results: { brand_id: string; ok: boolean; error?: string; inserted?: number }[] = [];
   for (const b of targets) {
     try {
-      await executeRunDailyCampaign({ brandId: b.id });
-      results.push({ brand_id: b.id, ok: true });
+      const r = await generateDailyAndPersist(b, leadMode);
+      results.push({ brand_id: b.id, ok: true, inserted: r.inserted });
     } catch (e) {
       const message = e instanceof Error ? e.message : "fail";
       results.push({ brand_id: b.id, ok: false, error: message });
     }
   }
 
-  logApi("cron:daily-content", { ran: results.length });
+  logApi("cron:generate-daily", { ran: results.length, leadMode });
   return NextResponse.json({ ok: true, results });
 }

@@ -2,19 +2,11 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "crons": [
     {
-      "path": "/api/cron/daily-content",
+      "path": "/api/cron/generate-daily",
       "schedule": "0 13 * * *"
     },
     {
-      "path": "/api/cron/metrics-ingest",
-      "schedule": "0 14 * * *"
-    },
-    {
-      "path": "/api/cron/score-calculation",
-      "schedule": "0 15 * * *"
-    },
-    {
-      "path": "/api/cron/learning-refresh",
+      "path": "/api/cron/learn",
       "schedule": "0 16 * * *"
     }
   ]

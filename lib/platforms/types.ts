@@ -1,10 +1,10 @@
-import type { Platform, PostRow } from "@/lib/types";
+import type { ContentPostRow, Platform } from "@/lib/types";
 
 export type PlatformPostPayload = {
   post: Pick<
-    PostRow,
-    "hook" | "body" | "caption" | "cta" | "video_idea" | "platform"
-  >;
+    ContentPostRow,
+    "hook" | "caption" | "cta" | "platform"
+  > & { body?: string; video_idea?: string };
   /** Future: media URLs from queued_assets */
   mediaUrls?: string[];
 };

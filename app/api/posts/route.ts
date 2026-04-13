@@ -2,45 +2,21 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getSupabaseAdmin, isSupabaseConfigured } from "@/lib/supabase/admin";
 import { logApi } from "@/lib/log";
-import type {
-  ContentBucket,
-  Platform,
-  PostItemKind,
-  PostStatus,
-} from "@/lib/types";
+import type { Platform, PostStatus } from "@/lib/types";
 
 const CreateSchema = z.object({
   brand_id: z.string().uuid(),
-  content_bucket: z.enum([
-    "authority",
-    "story",
-    "education",
-    "controversy",
-    "conversion",
-  ]),
   platform: z.enum(["instagram", "tiktok", "youtube_shorts"]),
+  content: z.string().optional().default(""),
   hook: z.string().optional().default(""),
-  body: z.string().optional().default(""),
   caption: z.string().optional().default(""),
   cta: z.string().optional().default(""),
-  video_idea: z.string().optional().default(""),
-  lead_magnet_idea: z.string().optional().default(""),
-  item_kind: z
-    .enum([
-      "hook",
-      "caption",
-      "cta",
-      "video_idea",
-      "lead_post",
-      "conversion_post",
-      "ad_script",
-      "lead_magnet",
-      "post",
-    ])
-    .optional()
-    .default("post"),
-  queued_asset_id: z.string().uuid().optional().nullable(),
-  status: z.enum(["draft", "posted", "archived"]).optional().default("draft"),
+  hashtags: z.string().optional().default(""),
+  platform_variants: z.record(z.string(), z.unknown()).optional(),
+  image_url: z.string().optional().default(""),
+  video_url: z.string().optional().default(""),
+  generate_for_leads: z.boolean().optional().default(false),
+  status: z.enum(["draft", "posted"]).optional().default("draft"),
 });
 
 export async function GET(req: Request) {
@@ -54,7 +30,7 @@ export async function GET(req: Request) {
   const supabase = getSupabaseAdmin();
   let q = supabase.from("posts").select("*").order("created_at", { ascending: false });
   if (brandId) q = q.eq("brand_id", brandId);
-  if (status && ["draft", "posted", "archived"].includes(status)) {
+  if (status && ["draft", "posted"].includes(status)) {
     q = q.eq("status", status as PostStatus);
   }
   const { data, error } = await q.limit(200);
@@ -71,20 +47,30 @@ export async function POST(req: Request) {
     logApi("posts:create", { brand_id: input.brand_id });
 
     const supabase = getSupabaseAdmin();
+    const { data: brand, error: bErr } = await supabase
+      .from("brands")
+      .select("brand_tag")
+      .eq("id", input.brand_id)
+      .single();
+    if (bErr || !brand) {
+      return NextResponse.json({ error: "Brand not found" }, { status: 404 });
+    }
+
     const { data, error } = await supabase
       .from("posts")
       .insert({
         brand_id: input.brand_id,
-        content_bucket: input.content_bucket as ContentBucket,
+        brand_tag: brand.brand_tag as string,
         platform: input.platform as Platform,
+        content: input.content,
         hook: input.hook,
-        body: input.body,
         caption: input.caption,
         cta: input.cta,
-        video_idea: input.video_idea,
-        lead_magnet_idea: input.lead_magnet_idea,
-        item_kind: input.item_kind as PostItemKind,
-        queued_asset_id: input.queued_asset_id,
+        hashtags: input.hashtags,
+        platform_variants: input.platform_variants ?? {},
+        image_url: input.image_url,
+        video_url: input.video_url,
+        generate_for_leads: input.generate_for_leads,
         status: input.status as PostStatus,
       })
       .select()

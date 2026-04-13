@@ -5,72 +5,51 @@ export default function Home() {
     <main className="mx-auto flex max-w-3xl flex-col gap-10 px-4 py-20">
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-600">
-          BeFamous Growth Engine
+          BeFamous · autonomous growth
         </p>
-        <h1 className="mt-3 text-4xl font-semibold tracking-tight text-neutral-950 dark:text-white">
-          Run AI-powered growth campaigns across your brands
+        <h1 className="mt-3 text-4xl font-semibold tracking-tight">
+          Full-stack content + performance loop
         </h1>
         <p className="mt-5 text-lg text-neutral-600 dark:text-neutral-300">
-          Generate content, leads, and momentum daily. Execute campaigns, measure
-          what lands, and feed winners back into the next run — built for internal
-          operators growing multiple companies at once.
+          Daily generation for every brand, manual performance capture, viral scoring,
+          and a <strong>winning_patterns</strong> table that steers the next batch.
+          Lead mode dials urgency when you need consults, applications, or orders.
         </p>
       </div>
-
-      <ul className="grid gap-3 sm:grid-cols-2">
-        {[
-          { t: "Follower growth", d: "Short-form systems tuned for reach + saves." },
-          { t: "Lead generation", d: "CTA variants, lead posts, and conversion angles." },
-          { t: "Campaign execution", d: "One-click daily batches per brand profile." },
-          { t: "Learning loop", d: "Scores and insights bias the next generation pass." },
-        ].map((x) => (
-          <li
-            key={x.t}
-            className="rounded-2xl border border-neutral-200 bg-white/60 p-4 dark:border-neutral-800 dark:bg-neutral-950/40"
-          >
-            <p className="font-medium text-neutral-900 dark:text-white">{x.t}</p>
-            <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">{x.d}</p>
-          </li>
-        ))}
-      </ul>
 
       <div className="flex flex-wrap gap-3">
         <Link
           href="/dashboard"
-          className="rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
+          className="rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white"
         >
-          Open operator dashboard
+          Operator dashboard
         </Link>
         <a
           href="/api/brands"
-          className="rounded-xl border border-neutral-300 px-5 py-3 text-sm font-medium dark:border-neutral-700"
+          className="rounded-xl border border-neutral-300 px-5 py-3 text-sm dark:border-neutral-700"
         >
           Brands JSON
         </a>
       </div>
 
-      <section className="rounded-2xl border border-neutral-200 bg-neutral-50/80 p-5 text-sm dark:border-neutral-800 dark:bg-neutral-900/30">
-        <h2 className="font-semibold text-neutral-900 dark:text-white">
-          API surface (authenticated server + cron)
-        </h2>
+      <section className="rounded-2xl border border-neutral-200 p-5 text-sm dark:border-neutral-800">
+        <h2 className="font-semibold">Core modules</h2>
         <ul className="mt-3 list-inside list-disc space-y-1 text-neutral-600 dark:text-neutral-400">
           <li>
-            <code>POST /api/run-daily-campaign</code> — persist full campaign batch
+            <code>lib/content-engine.ts</code> — daily + batch generation, platform variants,
+            media prompt helper, persistence
           </li>
           <li>
-            <code>POST /api/generate-content</code> — package JSON, optional persist
+            <code>lib/brands.ts</code> — six operator profiles (MVA → Personal Brand)
           </li>
           <li>
-            <code>POST /api/score-post</code> — metrics in, scores stored
+            <code>lib/score.ts</code> — <code>calculateScore</code> (views/shares/comments/saves)
           </li>
           <li>
-            <code>GET/POST /api/learning-insights</code> — read / refresh patterns
+            <code>lib/learning.ts</code> — top 10% → <code>winning_patterns</code>
           </li>
           <li>
-            <code>POST /api/queue-asset</code> — metadata into queue
-          </li>
-          <li>
-            Platform services: <code>/api/platforms/*/post</code> (structured, not live)
+            Crons: <code>/api/cron/generate-daily</code>, <code>/api/cron/learn</code>
           </li>
         </ul>
       </section>

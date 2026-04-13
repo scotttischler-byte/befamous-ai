@@ -1,17 +1,15 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { executeRunDailyCampaign } from "@/lib/run-daily-campaign";
+import { generateDailyAndPersist, generateAndPersistBatch } from "@/lib/content-engine";
+import { getBrand } from "@/lib/brands-repo";
 import { logApi } from "@/lib/log";
 import { isSupabaseConfigured } from "@/lib/supabase/admin";
-import type { Platform } from "@/lib/types";
 
 const BodySchema = z.object({
   brand_id: z.string().uuid(),
-  platform: z.enum(["instagram", "tiktok", "youtube_shorts"]).optional(),
-  offer: z.string().max(800).optional(),
-  audience: z.string().max(800).optional(),
-  tone: z.string().max(400).optional(),
-  goal: z.string().max(400).optional(),
+  generate_for_leads: z.boolean().optional().default(false),
+  /** If set, overrides default daily size */
+  count: z.number().int().min(1).max(25).optional(),
 });
 
 export async function POST(req: Request) {
@@ -20,22 +18,25 @@ export async function POST(req: Request) {
   }
   try {
     const body = BodySchema.parse(await req.json());
-    logApi("run-daily-campaign", { brand_id: body.brand_id });
+    logApi("run-daily-campaign", body);
 
-    const result = await executeRunDailyCampaign({
-      brandId: body.brand_id,
-      platform: body.platform as Platform | undefined,
-      offer: body.offer,
-      audience: body.audience,
-      tone: body.tone,
-      goal: body.goal,
-    });
+    const brand = await getBrand(body.brand_id);
+    if (!brand) {
+      return NextResponse.json({ error: "Brand not found" }, { status: 404 });
+    }
 
-    return NextResponse.json(result);
+    const result = body.count
+      ? await generateAndPersistBatch(
+          brand,
+          body.count,
+          body.generate_for_leads
+        )
+      : await generateDailyAndPersist(brand, body.generate_for_leads);
+
+    return NextResponse.json({ ok: true, ...result });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Campaign failed";
     logApi("run-daily-campaign:error", { message });
-    const status = message.includes("not found") ? 404 : 500;
-    return NextResponse.json({ error: message }, { status });
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

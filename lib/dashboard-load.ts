@@ -1,20 +1,38 @@
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
-import { payloadFromRow } from "@/lib/learning-format";
-import type {
-  LearningInsightRow,
-  PostRow,
-  PostScoreRow,
-  QueuedAssetRow,
-} from "@/lib/types";
+import type { ContentPostRow, WinningPatternRow } from "@/lib/types";
+
+async function latestScoreByPost(
+  brandId: string
+): Promise<Map<string, number>> {
+  const supabase = getSupabaseAdmin();
+  const { data: posts } = await supabase
+    .from("posts")
+    .select("id")
+    .eq("brand_id", brandId);
+  const ids = (posts ?? []).map((p) => p.id);
+  if (!ids.length) return new Map();
+
+  const { data: perf, error } = await supabase
+    .from("performance")
+    .select("post_id, score, recorded_at")
+    .in("post_id", ids)
+    .order("recorded_at", { ascending: false });
+  if (error) throw error;
+  const map = new Map<string, number>();
+  for (const row of perf ?? []) {
+    if (!map.has(row.post_id)) {
+      map.set(row.post_id, row.score as number);
+    }
+  }
+  return map;
+}
 
 export type DashboardSnapshot = {
-  drafts: PostRow[];
-  posted: PostRow[];
-  topPosts: (PostRow & { viral_score: number })[];
-  insights: LearningInsightRow | null;
-  patterns: ReturnType<typeof payloadFromRow> | null;
+  drafts: ContentPostRow[];
+  posted: ContentPostRow[];
+  topPosts: (ContentPostRow & { score: number })[];
+  patterns: WinningPatternRow[];
   trend: { day: string; avg: number }[];
-  assets: QueuedAssetRow[];
 };
 
 export async function loadDashboardSnapshot(
@@ -28,7 +46,7 @@ export async function loadDashboardSnapshot(
     .eq("brand_id", brandId)
     .eq("status", "draft")
     .order("created_at", { ascending: false })
-    .limit(80);
+    .limit(100);
   if (dErr) throw dErr;
 
   const { data: posted, error: pErr } = await supabase
@@ -37,54 +55,40 @@ export async function loadDashboardSnapshot(
     .eq("brand_id", brandId)
     .eq("status", "posted")
     .order("created_at", { ascending: false })
-    .limit(40);
+    .limit(60);
   if (pErr) throw pErr;
 
-  const { data: scores, error: sErr } = await supabase
-    .from("post_scores")
-    .select("*")
-    .order("created_at", { ascending: false });
-  if (sErr) throw sErr;
+  const scores = await latestScoreByPost(brandId);
+  const all = [...(drafts ?? []), ...(posted ?? [])] as ContentPostRow[];
+  const topPosts = all
+    .map((p) => ({ ...p, score: scores.get(p.id) ?? 0 }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 15);
 
-  const latestByPost = new Map<string, PostScoreRow>();
-  for (const row of scores ?? []) {
-    if (!latestByPost.has(row.post_id)) {
-      latestByPost.set(row.post_id, row as PostScoreRow);
-    }
-  }
-
-  const brandPostIds = new Set([
-    ...(drafts ?? []).map((p) => p.id),
-    ...(posted ?? []).map((p) => p.id),
-  ]);
-
-  const topPosts = [...(drafts ?? []), ...(posted ?? [])]
-    .map((p) => ({
-      ...(p as PostRow),
-      viral_score: latestByPost.get(p.id)?.viral_score ?? 0,
-    }))
-    .filter((p) => brandPostIds.has(p.id))
-    .sort((a, b) => b.viral_score - a.viral_score)
-    .slice(0, 12);
-
-  const { data: insight, error: iErr } = await supabase
-    .from("learning_insights")
+  const { data: patterns, error: wErr } = await supabase
+    .from("winning_patterns")
     .select("*")
     .eq("brand_id", brandId)
-    .maybeSingle();
-  if (iErr) throw iErr;
+    .order("avg_score", { ascending: false })
+    .limit(30);
+  if (wErr) throw wErr;
 
-  const patterns = insight
-    ? payloadFromRow(insight as LearningInsightRow)
-    : null;
+  let perfRows: { post_id: string; score: number; recorded_at: string }[] = [];
+  if (all.length) {
+    const { data, error: perfErr } = await supabase
+      .from("performance")
+      .select("post_id, score, recorded_at")
+      .in("post_id", all.map((p) => p.id))
+      .order("recorded_at", { ascending: true });
+    if (perfErr) throw perfErr;
+    perfRows = (data ?? []) as typeof perfRows;
+  }
 
   const trendMap = new Map<string, { sum: number; n: number }>();
-  for (const sc of scores ?? []) {
-    const postId = sc.post_id;
-    if (!brandPostIds.has(postId)) continue;
-    const day = (sc.created_at as string).slice(0, 10);
+  for (const row of perfRows) {
+    const day = (row.recorded_at as string).slice(0, 10);
     const cur = trendMap.get(day) ?? { sum: 0, n: 0 };
-    cur.sum += sc.viral_score;
+    cur.sum += row.score as number;
     cur.n += 1;
     trendMap.set(day, cur);
   }
@@ -93,21 +97,11 @@ export async function loadDashboardSnapshot(
     .sort((a, b) => a.day.localeCompare(b.day))
     .slice(-14);
 
-  const { data: assets, error: aErr } = await supabase
-    .from("queued_assets")
-    .select("*")
-    .eq("brand_id", brandId)
-    .order("created_at", { ascending: false })
-    .limit(40);
-  if (aErr) throw aErr;
-
   return {
-    drafts: (drafts ?? []) as PostRow[],
-    posted: (posted ?? []) as PostRow[],
+    drafts: (drafts ?? []) as ContentPostRow[],
+    posted: (posted ?? []) as ContentPostRow[],
     topPosts,
-    insights: (insight as LearningInsightRow) ?? null,
-    patterns,
+    patterns: (patterns ?? []) as WinningPatternRow[],
     trend,
-    assets: (assets ?? []) as QueuedAssetRow[],
   };
 }
