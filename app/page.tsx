@@ -3,6 +3,7 @@ import Link from "next/link";
 export default function Home() {
   return (
     <main className="mx-auto flex max-w-3xl flex-col gap-10 px-4 py-20">
+      <h1 style={{ color: "red" }}>TEST DEPLOYMENT</h1>
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-600">
           BeFamous · autonomous growth
