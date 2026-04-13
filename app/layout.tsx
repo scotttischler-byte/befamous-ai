@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "BeFamous Growth Engine (BGE)",
+  title: "BeFamous — internal growth engine",
   description:
-    "AI-powered viral content generation, scoring, and learning loop for short-form video.",
+    "Multi-brand AI campaigns: daily content, lead generation, scoring, and learning across short-form channels.",
 };
 
 export default function RootLayout({

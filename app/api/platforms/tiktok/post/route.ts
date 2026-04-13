@@ -1,14 +1,33 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
+import { postTikTokContent } from "@/lib/platforms/tiktok";
+import type { PlatformPostPayload } from "@/lib/platforms/types";
 
-/** Phase 8 stub — TikTok Content Posting API not wired yet. */
-export async function POST() {
-  return NextResponse.json(
-    {
-      ok: false,
-      stub: true,
-      message:
-        "TikTok posting is not implemented. Wire TikTok developer Content Posting API here.",
-    },
-    { status: 501 }
-  );
+const BodySchema = z.object({
+  hook: z.string().optional(),
+  body: z.string().optional(),
+  caption: z.string().optional(),
+  cta: z.string().optional(),
+  video_idea: z.string().optional(),
+});
+
+export async function POST(req: Request) {
+  try {
+    const parsed = BodySchema.parse(await req.json());
+    const payload: PlatformPostPayload = {
+      post: {
+        hook: parsed.hook ?? "",
+        body: parsed.body ?? "",
+        caption: parsed.caption ?? "",
+        cta: parsed.cta ?? "",
+        video_idea: parsed.video_idea ?? "",
+        platform: "tiktok",
+      },
+    };
+    const result = await postTikTokContent(payload);
+    return NextResponse.json(result, { status: result.notImplemented ? 501 : 200 });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Invalid body";
+    return NextResponse.json({ error: message }, { status: 400 });
+  }
 }

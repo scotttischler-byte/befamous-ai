@@ -1,24 +1,21 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { assertCronAuthorized } from "@/lib/cron-auth";
-import { getWinningPatterns } from "@/lib/insights-service";
+import { listBrands } from "@/lib/brands-repo";
+import { refreshLearningForBrand } from "@/lib/learning-pipeline";
 import { isSupabaseConfigured } from "@/lib/supabase/admin";
+import { logApi } from "@/lib/log";
 
-/** Recompute learning snapshot (for future edge cache / workers). */
 export async function GET(req: NextRequest) {
   const denied = assertCronAuthorized(req);
   if (denied) return denied;
   if (!isSupabaseConfigured()) {
-    return NextResponse.json({ ok: true, refreshed: false, reason: "no_supabase" });
+    return NextResponse.json({ error: "Supabase not configured" }, { status: 503 });
   }
-  try {
-    const patterns = await getWinningPatterns();
-    return NextResponse.json({
-      ok: true,
-      refreshed: true,
-      pattern_count: patterns.common_hook_patterns.length,
-    });
-  } catch (e) {
-    const message = e instanceof Error ? e.message : "Refresh failed";
-    return NextResponse.json({ error: message }, { status: 500 });
+
+  const brands = await listBrands();
+  for (const b of brands) {
+    await refreshLearningForBrand(b.id);
   }
+  logApi("cron:learning-refresh", { brands: brands.length });
+  return NextResponse.json({ ok: true, refreshed: brands.length });
 }
