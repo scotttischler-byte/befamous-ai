@@ -22,11 +22,9 @@ export default async function DashboardPage() {
           <code className="rounded bg-neutral-100 px-1 dark:bg-neutral-800">
             SUPABASE_SERVICE_ROLE_KEY
           </code>{" "}
-          in{" "}
-          <code className="rounded bg-neutral-100 px-1 dark:bg-neutral-800">
-            .env.local
-          </code>
-          , run the SQL migration, then refresh.
+          in <code className="rounded bg-neutral-100 px-1 dark:bg-neutral-800">.env.local</code>{" "}
+          (see <code className="rounded bg-neutral-100 px-1 dark:bg-neutral-800">env.example</code>
+          ), run the SQL migration, then refresh.
         </p>
         <Link href="/" className="mt-6 inline-block text-blue-600 underline">
           ← Home
