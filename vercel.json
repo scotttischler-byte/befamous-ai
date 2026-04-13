@@ -1,0 +1,21 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "crons": [
+    {
+      "path": "/api/cron/daily-content",
+      "schedule": "0 13 * * *"
+    },
+    {
+      "path": "/api/cron/metrics-ingest",
+      "schedule": "0 14 * * *"
+    },
+    {
+      "path": "/api/cron/score-calculation",
+      "schedule": "0 15 * * *"
+    },
+    {
+      "path": "/api/cron/learning-refresh",
+      "schedule": "0 16 * * *"
+    }
+  ]
+}

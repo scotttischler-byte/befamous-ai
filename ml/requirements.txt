@@ -1,0 +1,2 @@
+# ML-lite engine uses stdlib only.
+# Add numpy/scikit-learn here when you graduate beyond heuristics.
