@@ -111,13 +111,13 @@ export function PublicMarketing() {
           <div className="flex flex-shrink-0 items-center gap-2 sm:gap-3">
             <a
               href={BOOK_DEMO_HREF}
-              className="rounded-xl border border-white/[0.12] bg-white/[0.03] px-3 py-2 text-xs font-medium text-white/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition hover:border-white/20 hover:bg-white/[0.06] sm:px-4 sm:text-sm"
+              className="rounded-xl border border-white/[0.12] bg-white/[0.03] px-3 py-2 text-xs font-medium text-white/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition duration-200 hover:border-white/20 hover:bg-white/[0.06] hover:shadow-[0_0_22px_rgba(255,255,255,0.06)] sm:px-4 sm:text-sm"
             >
               Book Demo
             </a>
             <Link
               href="/app"
-              className="rounded-xl bg-gradient-to-r from-blue-600 via-violet-600 to-fuchsia-600 px-3 py-2 text-xs font-semibold text-white shadow-[0_8px_28px_-6px_rgba(139,92,246,0.55)] transition hover:brightness-110 sm:px-5 sm:text-sm"
+              className="rounded-xl bg-gradient-to-r from-blue-600 via-violet-600 to-fuchsia-600 px-3 py-2 text-xs font-semibold text-white shadow-[0_8px_28px_-6px_rgba(139,92,246,0.55)] transition duration-200 hover:brightness-110 hover:shadow-[0_0_28px_rgba(168,85,247,0.45)] sm:px-5 sm:text-sm"
             >
               Enter App
             </Link>
@@ -148,14 +148,14 @@ export function PublicMarketing() {
             <div className="mt-10 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center sm:gap-4">
               <Link
                 href="/app"
-                className="group inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 via-violet-600 to-fuchsia-600 px-8 py-4 text-sm font-semibold text-white shadow-[0_14px_44px_-10px_rgba(139,92,246,0.55),inset_0_1px_0_rgba(255,255,255,0.1)] transition hover:brightness-110"
+                className="group inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 via-violet-600 to-fuchsia-600 px-8 py-4 text-sm font-semibold text-white shadow-[0_14px_44px_-10px_rgba(139,92,246,0.55),inset_0_1px_0_rgba(255,255,255,0.1)] transition duration-200 hover:brightness-110 hover:shadow-[0_14px_44px_-10px_rgba(139,92,246,0.55),inset_0_1px_0_rgba(255,255,255,0.1),0_0_42px_rgba(168,85,247,0.35)]"
               >
                 Enter App
                 <IconArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
               </Link>
               <a
                 href={BOOK_DEMO_HREF}
-                className="inline-flex items-center justify-center rounded-2xl border border-white/[0.14] bg-white/[0.04] px-8 py-4 text-sm font-medium text-white/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] transition hover:border-white/25 hover:bg-white/[0.07]"
+                className="inline-flex items-center justify-center rounded-2xl border border-white/[0.14] bg-white/[0.04] px-8 py-4 text-sm font-medium text-white/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] transition duration-200 hover:border-white/25 hover:bg-white/[0.07] hover:shadow-[0_0_28px_rgba(255,255,255,0.07)]"
               >
                 Book Demo
               </a>
@@ -225,14 +225,14 @@ export function PublicMarketing() {
               <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
                 <Link
                   href="/app"
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 via-violet-600 to-fuchsia-600 px-8 py-3.5 text-sm font-semibold text-white shadow-[0_12px_36px_-8px_rgba(59,130,246,0.45)] transition hover:brightness-110"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 via-violet-600 to-fuchsia-600 px-8 py-3.5 text-sm font-semibold text-white shadow-[0_12px_36px_-8px_rgba(59,130,246,0.45)] transition duration-200 hover:brightness-110 hover:shadow-[0_12px_36px_-8px_rgba(59,130,246,0.45),0_0_38px_rgba(168,85,247,0.32)]"
                 >
                   Enter App
                   <IconArrowRight className="h-4 w-4" />
                 </Link>
                 <Link
                   href="/dashboard"
-                  className="inline-flex items-center justify-center rounded-2xl border border-white/20 bg-white/[0.05] px-8 py-3.5 text-sm font-semibold text-white/95 transition hover:bg-white/[0.09]"
+                  className="inline-flex items-center justify-center rounded-2xl border border-white/20 bg-white/[0.05] px-8 py-3.5 text-sm font-semibold text-white/95 transition duration-200 hover:bg-white/[0.09] hover:shadow-[0_0_24px_rgba(255,255,255,0.06)]"
                 >
                   Operator dashboard
                 </Link>
