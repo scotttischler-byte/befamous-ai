@@ -21,3 +21,14 @@ export async function getBrand(id: string): Promise<BrandRow | null> {
   if (error) throw error;
   return (data as BrandRow) ?? null;
 }
+
+export async function getBrandByTag(tag: string): Promise<BrandRow | null> {
+  const supabase = getSupabaseAdmin();
+  const { data, error } = await supabase
+    .from("brands")
+    .select("*")
+    .eq("brand_tag", tag)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as BrandRow) ?? null;
+}

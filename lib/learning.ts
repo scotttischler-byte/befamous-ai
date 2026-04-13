@@ -28,10 +28,14 @@ export async function analyzeTopPosts(
   if (error) throw error;
 
   const scores = await latestPerformanceByPost();
-  const list: AnalyzedPost[] = (posts ?? []).map((p) => ({
-    post: p as ContentPostRow,
-    score: scores.get(p.id) ?? 0,
-  }));
+  const list: AnalyzedPost[] = (posts ?? []).map((p) => {
+    const row = p as ContentPostRow & { score?: number };
+    const stored = typeof row.score === "number" ? row.score : 0;
+    return {
+      post: row,
+      score: Math.max(scores.get(p.id) ?? 0, stored),
+    };
+  });
 
   list.sort((a, b) => b.score - a.score);
   return list;

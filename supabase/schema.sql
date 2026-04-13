@@ -1,8 +1,9 @@
--- BeFamous Growth Engine — autonomous content + growth (Phase 2)
+-- BeFamous Growth Engine — full autonomous content + growth
 -- Destructive reset: drops prior BGE tables.
 
 create extension if not exists "pgcrypto";
 
+drop table if exists public.performance_logs cascade;
 drop table if exists public.winning_patterns cascade;
 drop table if exists public.performance cascade;
 drop table if exists public.posts cascade;
@@ -31,10 +32,13 @@ create table public.posts (
   brand_tag text not null,
   platform text not null check (platform in ('instagram', 'tiktok', 'youtube_shorts')),
   content text not null default '',
+  script text not null default '',
   hook text not null default '',
   caption text not null default '',
   cta text not null default '',
   hashtags text not null default '',
+  visual_plan jsonb not null default '[]'::jsonb,
+  score double precision not null default 0,
   platform_variants jsonb not null default '{}'::jsonb,
   image_url text not null default '',
   video_url text not null default '',
@@ -51,8 +55,21 @@ create table public.performance (
   comments integer not null default 0 check (comments >= 0),
   shares integer not null default 0 check (shares >= 0),
   saves integer not null default 0 check (saves >= 0),
+  conversion_estimate double precision not null default 0,
   score double precision not null,
   recorded_at timestamptz not null default now()
+);
+
+create table public.performance_logs (
+  id uuid primary key default gen_random_uuid(),
+  post_id uuid not null references public.posts (id) on delete cascade,
+  views integer not null default 0 check (views >= 0),
+  likes integer not null default 0 check (likes >= 0),
+  comments integer not null default 0 check (comments >= 0),
+  shares integer not null default 0 check (shares >= 0),
+  conversion_estimate double precision not null default 0,
+  score double precision not null default 0,
+  logged_at timestamptz not null default now()
 );
 
 create table public.winning_patterns (
@@ -67,23 +84,26 @@ create table public.winning_patterns (
 
 create index posts_brand_status_idx on public.posts (brand_id, status, created_at desc);
 create index posts_brand_tag_idx on public.posts (brand_tag);
+create index posts_score_idx on public.posts (brand_id, score desc nulls last);
 create index performance_post_ts_idx on public.performance (post_id, recorded_at desc);
+create index performance_logs_post_ts_idx on public.performance_logs (post_id, logged_at desc);
 create index winning_patterns_brand_idx on public.winning_patterns (brand_id, avg_score desc);
 
 alter table public.brands enable row level security;
 alter table public.posts enable row level security;
 alter table public.performance enable row level security;
+alter table public.performance_logs enable row level security;
 alter table public.winning_patterns enable row level security;
 
 create policy "brands_auth" on public.brands for all to authenticated using (true) with check (true);
 create policy "posts_auth" on public.posts for all to authenticated using (true) with check (true);
 create policy "performance_auth" on public.performance for all to authenticated using (true) with check (true);
+create policy "performance_logs_auth" on public.performance_logs for all to authenticated using (true) with check (true);
 create policy "winning_patterns_auth" on public.winning_patterns for all to authenticated using (true) with check (true);
 
--- Seed six operator brands (idempotent by brand_tag)
 insert into public.brands (brand_tag, name, audience, tone, primary_goal, cta_style, offer, preferred_platforms)
 select * from (values
-  ('MVA', 'MVA', 'Accident victims & injured drivers', 'Urgent, empathetic, authoritative', 'Leads — free case review', 'Call / DM now — time-sensitive', 'Free case review for accident victims', array['tiktok','instagram','youtube_shorts']::text[]),
+  ('MVA', 'MVA', 'Accident victims & injured drivers', 'Direct response: urgent, empathetic, authoritative — never generic', 'Leads — free case review', 'Call / DM now — time-sensitive', 'Free case review for accident victims', array['tiktok','instagram','youtube_shorts']::text[]),
   ('LAW_FIRM', 'Law Firm', 'Attorneys & firm marketing leaders', 'Credible, professional, emotionally intelligent', 'Leads & consults', 'Free case evaluation / protect your rights', 'Free intake audit & case review', array['instagram','youtube_shorts','tiktok']::text[]),
   ('FITNESS', 'Fitness', 'Busy adults chasing transformation', 'Bold, disciplined, high-energy', 'Followers + applications', 'Apply / book call — proof-first', 'Performance coaching for busy professionals', array['tiktok','instagram','youtube_shorts']::text[]),
   ('NBA_DOG_TAGS', 'NBA Dog Tags', 'NBA fans & gift buyers', 'Pride, exclusivity, collectible energy', 'Orders + list growth', 'Shop link / limited drop', 'Premium NBA hardwood dog tags', array['tiktok','instagram','youtube_shorts']::text[]),

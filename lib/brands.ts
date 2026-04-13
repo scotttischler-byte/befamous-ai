@@ -19,7 +19,7 @@ export const BRAND_PROFILES: Record<BrandTag, BrandProfile> = {
     tag: "MVA",
     displayName: "MVA",
     audience: "Accident victims & injured drivers",
-    tone: "Urgent, empathetic, authoritative",
+    tone: "Direct response: urgent, empathetic, authoritative — never generic",
     goal: "leads",
     ctaStyle: "Call / DM now — statute & insurance urgency",
     offer: "Free case review for accident victims",
@@ -88,6 +88,36 @@ export const BRAND_PROFILES: Record<BrandTag, BrandProfile> = {
       "Leverage, lessons learned, asymmetric bets, behind-the-scenes, credibility stacks.",
   },
 };
+
+const SYNTHETIC_BRAND_IDS: Record<BrandTag, string> = {
+  MVA: "00000000-0000-4000-8000-000000000001",
+  LAW_FIRM: "00000000-0000-4000-8000-000000000002",
+  FITNESS: "00000000-0000-4000-8000-000000000003",
+  NBA_DOG_TAGS: "00000000-0000-4000-8000-000000000004",
+  GAMEDAY_RINGS: "00000000-0000-4000-8000-000000000005",
+  PERSONAL_BRAND: "00000000-0000-4000-8000-000000000006",
+};
+
+/** In-memory brand row for generation when DB is unavailable (tag must exist in BRAND_PROFILES). */
+export function syntheticBrandRow(tag: BrandTag): BrandRow {
+  const p = BRAND_PROFILES[tag];
+  if (!p) {
+    throw new Error(`Unknown brand tag: ${tag}`);
+  }
+  const now = new Date().toISOString();
+  return {
+    id: SYNTHETIC_BRAND_IDS[tag],
+    brand_tag: p.tag,
+    name: p.displayName,
+    audience: p.audience,
+    tone: p.tone,
+    primary_goal: p.goal,
+    cta_style: p.ctaStyle,
+    offer: p.offer,
+    preferred_platforms: p.platforms,
+    created_at: now,
+  };
+}
 
 export function getBrandProfileByTag(tag: string): BrandProfile | null {
   return BRAND_PROFILES[tag as BrandTag] ?? null;

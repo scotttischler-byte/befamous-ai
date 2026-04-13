@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { recordPerformance } from "@/lib/record-performance";
 import { logApi } from "@/lib/log";
+import { recordPerformanceLog } from "@/lib/record-performance-log";
 import { isSupabaseConfigured } from "@/lib/supabase/admin";
 
 const BodySchema = z.object({
@@ -10,8 +10,7 @@ const BodySchema = z.object({
   likes: z.number().int().min(0),
   comments: z.number().int().min(0),
   shares: z.number().int().min(0),
-  saves: z.number().int().min(0).optional().default(0),
-  conversion_estimate: z.number().min(0).optional().default(0),
+  conversion_estimate: z.number().min(0).default(0),
 });
 
 export async function POST(req: Request) {
@@ -20,19 +19,12 @@ export async function POST(req: Request) {
   }
   try {
     const input = BodySchema.parse(await req.json());
-    logApi("performance", { post_id: input.post_id });
-    const { score } = await recordPerformance(input.post_id, {
-      views: input.views,
-      likes: input.likes,
-      comments: input.comments,
-      shares: input.shares,
-      saves: input.saves,
-      conversion_estimate: input.conversion_estimate,
-    });
+    logApi("performance:log", { post_id: input.post_id });
+    const { score } = await recordPerformanceLog(input);
     return NextResponse.json({ ok: true, score });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Failed";
-    logApi("performance:error", { message });
+    logApi("performance:log:error", { message });
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }

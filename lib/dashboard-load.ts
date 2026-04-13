@@ -61,7 +61,18 @@ export async function loadDashboardSnapshot(
   const scores = await latestScoreByPost(brandId);
   const all = [...(drafts ?? []), ...(posted ?? [])] as ContentPostRow[];
   const topPosts = all
-    .map((p) => ({ ...p, score: scores.get(p.id) ?? 0 }))
+    .map((p) => {
+      const row = p as ContentPostRow & { visual_plan?: unknown; script?: string; score?: number };
+      const vp = row.visual_plan;
+      const visual_plan = Array.isArray(vp) ? vp.map(String) : [];
+      const stored = typeof row.score === "number" ? row.score : 0;
+      return {
+        ...row,
+        script: row.script ?? row.content ?? "",
+        visual_plan,
+        score: Math.max(scores.get(row.id) ?? 0, stored),
+      } as ContentPostRow & { score: number };
+    })
     .sort((a, b) => b.score - a.score)
     .slice(0, 15);
 

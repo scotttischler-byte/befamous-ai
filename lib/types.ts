@@ -28,7 +28,9 @@ export type PlatformVariants = Partial<
     Platform,
     { caption?: string; hashtags?: string; hook?: string; cta?: string }
   >
->;
+> & {
+  mva_variation?: string;
+};
 
 export type ContentPostRow = {
   id: string;
@@ -36,10 +38,13 @@ export type ContentPostRow = {
   brand_tag: string;
   platform: Platform;
   content: string;
+  script: string;
   hook: string;
   caption: string;
   cta: string;
   hashtags: string;
+  visual_plan: string[];
+  score: number;
   platform_variants: PlatformVariants;
   image_url: string;
   video_url: string;
@@ -56,8 +61,21 @@ export type PerformanceRow = {
   comments: number;
   shares: number;
   saves: number;
+  conversion_estimate: number;
   score: number;
   recorded_at: string;
+};
+
+export type PerformanceLogRow = {
+  id: string;
+  post_id: string;
+  views: number;
+  likes: number;
+  comments: number;
+  shares: number;
+  conversion_estimate: number;
+  score: number;
+  logged_at: string;
 };
 
 export type WinningPatternRow = {
@@ -70,12 +88,23 @@ export type WinningPatternRow = {
   updated_at: string;
 };
 
+/** Viral score inputs (saves optional for legacy forms). */
 export type PostMetricsInput = {
   views: number;
   likes: number;
   comments: number;
   shares: number;
-  saves: number;
+  saves?: number;
+  conversion_estimate?: number;
+};
+
+export type PostMetricsLogInput = {
+  post_id: string;
+  views: number;
+  likes: number;
+  comments: number;
+  shares: number;
+  conversion_estimate: number;
 };
 
 export type AnalyzedPost = {
