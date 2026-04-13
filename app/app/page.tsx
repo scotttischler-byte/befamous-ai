@@ -69,7 +69,24 @@ export default function BeFamousAppScreen() {
         aria-hidden
       />
 
-      <main className="relative z-0 mx-auto flex max-w-6xl flex-col gap-16 px-4 pb-24 pt-14 sm:gap-20 sm:px-6 sm:pt-20 lg:gap-24 lg:px-8 lg:pt-24">
+      <header className="sticky top-0 z-50 border-b border-white/[0.08] bg-[#050508]/85 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
+          <Link
+            href="/"
+            className="text-sm font-semibold text-white/90 transition hover:text-white"
+          >
+            ← BeFamous home
+          </Link>
+          <Link
+            href="/dashboard"
+            className="text-sm font-medium text-blue-400 transition hover:text-blue-300"
+          >
+            Dashboard →
+          </Link>
+        </div>
+      </header>
+
+      <main className="relative z-0 mx-auto flex max-w-6xl flex-col gap-16 px-4 pb-24 pt-10 sm:gap-20 sm:px-6 sm:pt-14 lg:gap-24 lg:px-8 lg:pt-16">
         {/* Hero */}
         <section className="flex flex-col gap-10 lg:flex-row lg:items-start lg:justify-between lg:gap-12">
           <div className="max-w-2xl flex-1">

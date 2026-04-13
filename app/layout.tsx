@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "BeFamous — AI Viral Content Engine",
   description:
-    "Generate hooks, captions, and CTAs across brands. Learn what performs over time and make daily posting easier with BeFamous.",
+    "AI content generation, viral hooks, templates, lead capture, and performance tracking—an autonomous growth engine for modern teams.",
 };
 
 export default function RootLayout({
