@@ -30,6 +30,12 @@ export default function Home() {
         >
           Brands JSON
         </a>
+        <Link
+          href="/test"
+          className="rounded-xl border border-neutral-300 px-5 py-3 text-sm dark:border-neutral-700"
+        >
+          Env test page
+        </Link>
       </div>
 
       <section className="rounded-2xl border border-neutral-200 p-5 text-sm dark:border-neutral-800">
@@ -43,7 +49,7 @@ export default function Home() {
             <code>lib/brands.ts</code> — six operator profiles (MVA → Personal Brand)
           </li>
           <li>
-            <code>lib/score.ts</code> — <code>calculateScore</code> (views/shares/comments/saves)
+            <code>lib/score.ts</code> — <code>calculateScore</code> (views/shares/comments/likes/conversion_est)
           </li>
           <li>
             <code>lib/learning.ts</code> — top 10% → <code>winning_patterns</code>
