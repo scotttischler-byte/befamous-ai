@@ -1,0 +1,128 @@
+{
+  "version": 1,
+  "attorneys": [
+    {
+      "id": "atty-tx-1",
+      "name": "Jordan Reyes — PI (TX)",
+      "state": "TX",
+      "specialties": [
+        "auto",
+        "truck",
+        "motorcycle",
+        "personal injury",
+        "pi"
+      ],
+      "capacityPerMonth": 40
+    },
+    {
+      "id": "atty-fl-1",
+      "name": "Morgan Lee — PI (FL)",
+      "state": "FL",
+      "specialties": [
+        "auto",
+        "slip",
+        "fall",
+        "personal injury"
+      ],
+      "capacityPerMonth": 35
+    },
+    {
+      "id": "atty-national-1",
+      "name": "Sam Okonkwo — WC / Employment",
+      "state": "US",
+      "specialties": [
+        "workers",
+        "employment",
+        "wc",
+        "discrimination"
+      ],
+      "capacityPerMonth": 25
+    },
+    {
+      "id": "atty-bd-1",
+      "name": "Riley Chen — Firm partnerships",
+      "state": "US",
+      "specialties": [
+        "firm",
+        "partner",
+        "attorney",
+        "saas",
+        "bd"
+      ],
+      "capacityPerMonth": 999
+    }
+  ],
+  "leads": [],
+  "posts": [
+    {
+      "id": "a56c2099-4803-40af-9078-50f6ac25924e",
+      "tenantId": "tenant_internal",
+      "platform": "tiktok",
+      "hook": "Austin truck wreck? Don’t call the first number you see.",
+      "captionSnippet": "If you were hit by a semi in Austin, the first move matters. Save this before you need it. If you want the next steps, comment HELP or DM HELP.",
+      "postedAt": "2026-04-06T16:27:53.730Z",
+      "simulated": true
+    }
+  ],
+  "platformSettings": {
+    "tiktok": {
+      "enabled": true,
+      "postingEnabled": true,
+      "connected": false,
+      "priority": 10
+    },
+    "instagram": {
+      "enabled": true,
+      "postingEnabled": true,
+      "connected": false,
+      "priority": 15
+    },
+    "youtube": {
+      "enabled": true,
+      "postingEnabled": true,
+      "connected": false,
+      "priority": 20
+    },
+    "facebook": {
+      "enabled": true,
+      "postingEnabled": true,
+      "connected": false,
+      "priority": 25
+    },
+    "twitter": {
+      "enabled": true,
+      "postingEnabled": true,
+      "connected": false,
+      "priority": 30
+    },
+    "linkedin": {
+      "enabled": true,
+      "postingEnabled": true,
+      "connected": false,
+      "priority": 35
+    },
+    "google_business": {
+      "enabled": true,
+      "postingEnabled": true,
+      "connected": false,
+      "priority": 40
+    }
+  },
+  "saasClients": [
+    {
+      "id": "saas-demo-1",
+      "name": "Demo Law Group",
+      "email": "demo@example.com",
+      "createdAt": "2026-04-05T17:02:46.954Z"
+    }
+  ],
+  "analytics": {
+    "lastComputedAt": "2026-04-06T16:27:53.730Z",
+    "totalLeads": 0,
+    "qualifiedLeads": 0,
+    "attorneyLeads": 0,
+    "accidentLeads": 0,
+    "conversionRate": 0,
+    "revenueEstimateUsd": 0
+  }
+}
