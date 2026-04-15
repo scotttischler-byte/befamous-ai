@@ -1,5 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "public": true,
+  "github": {
+    "silent": false
+  },
   "crons": [
     {
       "path": "/api/cron/generate-daily",

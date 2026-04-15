@@ -1,5 +1,5 @@
-import { AccidentIntakeFunnel } from "@/components/intake/AccidentIntakeFunnel";
+import { redirect } from "next/navigation";
 
 export default function IntakePage() {
-  return <AccidentIntakeFunnel />;
+  redirect("/apply");
 }

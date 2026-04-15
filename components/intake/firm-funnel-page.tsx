@@ -32,7 +32,7 @@ export function FirmFunnelPage({
         <section className="space-y-8 lg:col-span-7">
           <div className="flex flex-wrap items-center gap-3">
             <p className="rounded-full border border-fuchsia-400/30 bg-fuchsia-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-fuchsia-100">
-              {firmName}
+              Intake
             </p>
             <p className="text-xs uppercase tracking-[0.2em] text-white/45">Internal Funnel Route</p>
           </div>
@@ -89,7 +89,8 @@ export function FirmFunnelPage({
           <div className="rounded-3xl border border-white/10 bg-black/35 p-6 shadow-[0_24px_80px_-36px_rgba(0,0,0,0.95),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-md sm:p-7">
             <h2 className="text-lg font-semibold tracking-tight">Start intake</h2>
             <p className="mt-2 text-sm text-blue-100/55">
-              This is the live intake surface for <span className="font-medium text-white/90">{firmName}</span>.
+              Complete the form below to send a secure inquiry. A specialist will follow up if your situation
+              qualifies.
             </p>
             <div className="mt-6">
               <IntakeForm firmSlug={firmSlug} firmName={firmName} />

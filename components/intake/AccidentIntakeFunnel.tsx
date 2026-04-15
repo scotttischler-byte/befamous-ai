@@ -122,9 +122,9 @@ export function AccidentIntakeFunnel() {
 
         {step === 1 && (
           <>
-            <h1 style={styles.headline}>Injured in a Car Accident?</h1>
+            <h1 style={styles.headline}>Apply</h1>
             <p style={styles.subheadline}>
-              What you do next matters. Before speaking to insurance, understand your options.
+              Get started — tell us what happened and submit your application in a few quick steps.
             </p>
             <p style={styles.question}>Were you injured in the accident?</p>
             <button
@@ -305,7 +305,7 @@ export function AccidentIntakeFunnel() {
             </ul>
 
             <div style={styles.disclosureBox}>
-              <p style={styles.disclosureTitle}>Consent &amp; contact</p>
+              <p style={styles.disclosureTitle}>Apply — consent &amp; contact</p>
               <label style={styles.consentLabel}>
                 <input
                   type="checkbox"
@@ -314,29 +314,25 @@ export function AccidentIntakeFunnel() {
                   style={styles.checkbox}
                 />
                 <span style={styles.consentText}>
-                  I agree to be contacted by partner law firms and their representatives by phone, text, and
-                  email, including automated messages at the number provided, even if my number is on a Do Not
-                  Call list. Consent is not required to obtain services.
+                  I agree to be contacted about my application by phone, text, and email, including automated
+                  messages at the number provided, even if my number is on a Do Not Call list. Consent is not
+                  required to obtain services.
                 </span>
               </label>
 
               <div style={styles.disclosureDivider} />
 
               <p style={styles.disclosureMuted}>
-                Submitting this form does not create an attorney-client relationship. An attorney-client
-                relationship is only formed after signing a formal agreement with a licensed attorney.
+                Submitting this application does not create a professional relationship until you sign any
+                required agreements with a qualified provider.
               </p>
               <p style={styles.disclosureMuted}>
-                Submitting information does not guarantee representation. Case acceptance depends on attorney
-                review and applicable law.
+                Submitting information does not guarantee acceptance. Review depends on your details and
+                applicable rules.
               </p>
               <p style={styles.disclosureMuted}>
-                This is an advertisement for legal services. Cases may be referred to participating attorneys.
-                Prior results do not guarantee a similar outcome.
-              </p>
-              <p style={styles.disclosureMuted}>
-                Your information may be shared with participating attorneys and service providers to evaluate your
-                potential claim.
+                Your application may be shared with partners and service providers to evaluate your request. Prior
+                results do not guarantee a similar outcome.
               </p>
               <p style={styles.disclosureMuted}>
                 If you are in immediate danger or need urgent medical attention, call 911 immediately.
@@ -350,7 +346,7 @@ export function AccidentIntakeFunnel() {
                 Back
               </button>
               <button type="button" onClick={submit} disabled={loading} style={styles.ctaButton}>
-                {loading ? "Submitting..." : "Check My Case Now"}
+                {loading ? "Submitting..." : "Submit your application"}
               </button>
             </div>
           </>

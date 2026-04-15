@@ -5,9 +5,9 @@ export default function Page() {
     <FirmFunnelPage
       firmSlug="tygibson"
       firmName="Ty Gibson"
-      heroTitle="Ty Gibson Campaign Funnel"
+      heroTitle="Authority campaign funnel"
       heroSubtitle="Turn authority-driven content into inbound opportunities with a premium branded intake flow."
-      audience="Founder-led audience evaluating legal strategy, trust, and execution depth before booking."
+      audience="Founder-led audience evaluating strategy, trust, and execution depth before booking."
       valuePoints={[
         "Align messaging to authority + conversion intent.",
         "Collect context-rich inquiry details in one pass.",
