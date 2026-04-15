@@ -46,9 +46,9 @@ const ANGLE_WHY_FRAMES = [
     `Why it works: Contrarian hook earns the save; you earn the follow-up with proof tied to ${o.offer || "your offer"}.`,
   (o: HookFormState) =>
     `Why it works: Speaks to ${o.audience || "one avatar"} only — narrow beats broad on ${o.platform}.`,
-  (o: HookFormState) =>
+  (_o: HookFormState) =>
     `Why it works: Emotional hook → logical bridge → CTA; the brain needs both to move on short-form.`,
-  (o: HookFormState) =>
+  (_o: HookFormState) =>
     `Why it works: “Unpopular opinion” triggers comments; comments feed the algo while you look fearless.`,
   (o: HookFormState) =>
     `Why it works: Time-boxed urgency (${o.goal}) without sleaze — urgency from clarity, not countdown spam.`,
