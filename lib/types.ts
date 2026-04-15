@@ -111,3 +111,47 @@ export type AnalyzedPost = {
   post: ContentPostRow;
   score: number;
 };
+
+export type IntakeFaultStatus = "no" | "not_sure" | "yes";
+export type IntakeTreatmentStatus =
+  | "already_treating"
+  | "willing_immediately"
+  | "not_yet_unsure"
+  | "no";
+export type IntakeTriageOption = "yes" | "no" | "not_sure";
+export type IntakeAccidentType =
+  | "car"
+  | "commercial"
+  | "motorcycle"
+  | "rideshare"
+  | "ped_bike_hit"
+  | "other";
+
+export type CaseType =
+  | "STANDARD"
+  | "CATASTROPHIC"
+  | "COMMERCIAL"
+  | "MOTORCYCLE"
+  | "RIDESHARE"
+  | "DISQUALIFIED";
+
+export type IntakePriority = "HIGH" | "MEDIUM" | "LOW";
+
+export type IntakeLeadPayload = {
+  injuredInMva: boolean;
+  accidentDate: string;
+  hasAttorney: "yes" | "no";
+  faultStatus: IntakeFaultStatus;
+  accidentType: IntakeAccidentType;
+  injuries: string[];
+  treatmentStatus: IntakeTreatmentStatus;
+  policeReport: IntakeTriageOption;
+  policeReportCopy?: IntakeTriageOption;
+  otherPartyInsurance: IntakeTriageOption;
+  hasUmCoverage: IntakeTriageOption;
+  fullName: string;
+  phone: string;
+  email: string;
+  consent: boolean;
+  incidentDescription: string;
+};

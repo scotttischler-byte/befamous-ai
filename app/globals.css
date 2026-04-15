@@ -25,6 +25,11 @@ body {
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
+/* MVA funnel / dark landing: prevent white overscroll gaps on mobile */
+html {
+  background-color: #050506;
+}
+
 /* Hook Engine — animated aurora (deep purple / blue / pink) */
 @keyframes hook-engine-aurora {
   0%,
