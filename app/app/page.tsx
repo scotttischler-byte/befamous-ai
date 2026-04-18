@@ -1,11 +1,6 @@
-import type { Metadata } from "next";
-import { HookEngineApp } from "@/components/hook-engine/hook-engine-app";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = {
-  title: "Hook Engine | BeFamous App",
-  description: "Generate hooks, angles, and starter captions with the BeFamous Hook Engine.",
-};
-
-export default function AppPage() {
-  return <HookEngineApp />;
+/** Canonical BeFamous app is at `/`; keep `/app` as a short alias. */
+export default function AppAliasPage() {
+  redirect("/");
 }
